@@ -1,0 +1,40 @@
+services:
+  api:
+    build: ./backend
+    env_file: .env
+    volumes:
+      - published:/srv/published
+    depends_on:
+      - postgres
+      - redis
+  worker:
+    build: ./backend
+    command: python -m app.worker
+    env_file: .env
+    volumes:
+      - published:/srv/published
+    depends_on:
+      - postgres
+      - redis
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: fmucxkf
+      POSTGRES_USER: fmucxkf
+      POSTGRES_PASSWORD: localdev
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  redis:
+    image: redis:7-alpine
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - published:/srv/published:ro
+    depends_on:
+      - api
+volumes:
+  pgdata:
+  published:
