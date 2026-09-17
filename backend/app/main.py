@@ -1,7 +1,10 @@
 from fastapi import FastAPI
+
+from app.api import router
 from app.config import settings
 
-app = FastAPI(title=settings.app_name, version="0.1.0")
+app = FastAPI(title=settings.app_name, version="0.3.0")
+app.include_router(router)
 
 
 @app.get("/api/v1/health")
@@ -11,8 +14,4 @@ def health() -> dict[str, str]:
 
 @app.get("/api/v1")
 def api_root() -> dict[str, str]:
-    return {
-        "name": settings.app_name,
-        "version": "0.1.0",
-        "phase": "foundation",
-    }
+    return {"name": settings.app_name, "version": "0.3.0", "phase": "page-pipeline"}
