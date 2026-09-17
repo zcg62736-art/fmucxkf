@@ -1,6 +1,16 @@
 import time
+
 from redis import Redis
+
 from app.config import settings
+from app.jobs import decode_job
+
+
+def dispatch(job_type: str, payload: dict) -> None:
+    if job_type == "PING":
+        print(f"worker ping: {payload}", flush=True)
+        return
+    print(f"unsupported job type: {job_type}", flush=True)
 
 
 def main() -> None:
@@ -9,8 +19,12 @@ def main() -> None:
     while True:
         item = redis.blpop("queue:default", timeout=5)
         if item:
-            _, payload = item
-            print(f"job received: {payload}", flush=True)
+            _, raw = item
+            try:
+                job = decode_job(raw)
+                dispatch(job.job_type, job.payload)
+            except Exception as exc:
+                print(f"job failed: {exc}", flush=True)
         time.sleep(0.1)
 
 
