@@ -3,12 +3,19 @@ import time
 from redis import Redis
 
 from app.config import settings
+from app.database import SessionLocal
 from app.jobs import decode_job
+from app.render_jobs import handle_render
 
 
 def dispatch(job_type: str, payload: dict) -> None:
     if job_type == "PING":
         print(f"worker ping: {payload}", flush=True)
+        return
+    if job_type == "RENDER_PAGE":
+        with SessionLocal() as db:
+            version = handle_render(db, payload)
+            print(f"rendered page version: {version.id}", flush=True)
         return
     print(f"unsupported job type: {job_type}", flush=True)
 
